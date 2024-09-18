@@ -3,8 +3,9 @@ package com.clipcoins.api.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 
 @Entity
@@ -17,8 +18,8 @@ public class User {
     private String username;
     private String hashed_code;
     private String role;
-    private Date created_at;
-    private Date updated_at;
+    private OffsetDateTime created_at;
+    private OffsetDateTime  updated_at;
 
     public long getId() {
         return id;
@@ -60,19 +61,19 @@ public class User {
         this.role = role;
     }
 
-    public Date getCreated_at() {
+    public OffsetDateTime getCreated_at() {
         return created_at;
     }
 
-    public void setCreated_at(Date created_at) {
+    public void setCreated_at(OffsetDateTime created_at) {
         this.created_at = created_at;
     }
 
-    public Date getUpdated_at() {
+    public OffsetDateTime getUpdated_at() {
         return updated_at;
     }
 
-    public void setUpdated_at(Date updated_at) {
+    public void setUpdated_at(OffsetDateTime updated_at) {
         this.updated_at = updated_at;
     }
 
