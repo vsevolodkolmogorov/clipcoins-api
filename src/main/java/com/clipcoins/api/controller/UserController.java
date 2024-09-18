@@ -38,7 +38,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping()
+    @GetMapping("/getByTelegramId")
     public ResponseEntity<User> getUserByTelegramId(@RequestParam long telegramId) {
         User user = service.getUserByTelegramId(telegramId);
 
@@ -49,7 +49,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping()
+    @GetMapping("/getByName")
     public ResponseEntity<User> getUserByUsername(@RequestParam String username) {
         User user = service.getUserByUsername(username);
 
