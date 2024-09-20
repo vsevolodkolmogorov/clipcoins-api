@@ -48,3 +48,4 @@ target
 *.war
 *.ear
 
+/src/main/resources/application.properties
