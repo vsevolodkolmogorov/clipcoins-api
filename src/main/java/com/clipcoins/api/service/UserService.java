@@ -1,12 +1,19 @@
 package com.clipcoins.api.service;
 
 import com.clipcoins.api.model.User;
+import com.clipcoins.api.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class UserService {
+    private final UserRepository repository;
+
+    public UserService(UserRepository userRepository) {
+        this.repository = userRepository;
+    }
 
     public List<User> getAllUsers() {
         return null;
