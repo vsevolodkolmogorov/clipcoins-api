@@ -1,9 +1,6 @@
 package com.clipcoins.api.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -15,12 +12,23 @@ public class User {
     @GeneratedValue
     private long id;
 
-    private long telegram_id;
+    private long telegramId;
     private String username;
-    private String hashed_code;
+    private String hashedCode;
     private String role;
-    private OffsetDateTime created_at;
-    private OffsetDateTime  updated_at;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime  updatedAt;
+
+    public User() {}
+
+    public User(long id, String username, String hashedCode) {
+        this.id = id;
+        this.username = username;
+        this.hashedCode = hashedCode;
+        this.role = "USER";
+        this.createdAt = OffsetDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
+    }
 
     public long getId() {
         return id;
@@ -30,12 +38,12 @@ public class User {
         this.id = id;
     }
 
-    public long getTelegram_id() {
-        return telegram_id;
+    public long getTelegramId() {
+        return telegramId;
     }
 
-    public void setTelegram_id(long telegram_id) {
-        this.telegram_id = telegram_id;
+    public void setTelegramId(long telegramId) {
+        this.telegramId = telegramId;
     }
 
     public String getUsername() {
@@ -46,12 +54,12 @@ public class User {
         this.username = username;
     }
 
-    public String getHashed_code() {
-        return hashed_code;
+    public String getHashedCode() {
+        return hashedCode;
     }
 
-    public void setHashed_code(String hashed_code) {
-        this.hashed_code = hashed_code;
+    public void setHashedCode(String hashedCode) {
+        this.hashedCode = hashedCode;
     }
 
     public String getRole() {
@@ -62,20 +70,20 @@ public class User {
         this.role = role;
     }
 
-    public OffsetDateTime getCreated_at() {
-        return created_at;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(OffsetDateTime created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public OffsetDateTime getUpdated_at() {
-        return updated_at;
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setUpdated_at(OffsetDateTime updated_at) {
-        this.updated_at = updated_at;
+    public void setUpdated_at(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override
@@ -83,24 +91,24 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && telegram_id == user.telegram_id;
+        return id == user.id && telegramId == user.telegramId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, telegram_id);
+        return Objects.hash(id, telegramId);
     }
 
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
-                ", telegram_id=" + telegram_id +
+                ", telegramId=" + telegramId +
                 ", username='" + username + '\'' +
-                ", hashed_code='" + hashed_code + '\'' +
+                ", hashedCode='" + hashedCode + '\'' +
                 ", role='" + role + '\'' +
-                ", created_at=" + created_at +
-                ", updated_at=" + updated_at +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 '}';
     }
 }
