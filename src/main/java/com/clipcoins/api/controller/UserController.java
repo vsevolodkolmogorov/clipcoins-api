@@ -2,13 +2,15 @@ package com.clipcoins.api.controller;
 
 import com.clipcoins.api.model.User;
 import com.clipcoins.api.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
     private final UserService service;
 
@@ -27,19 +29,18 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable long id) {
-        User user = service.getUserById(id);
-
-        if (user == null) {
+        try {
+            User user = service.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
-
-        return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/getByTelegramId")
-    public ResponseEntity<User> getUserByTelegramId(@RequestParam long telegramId) {
+    @GetMapping("/getByTelegramId/{telegramId}")
+    public ResponseEntity<User> getUserByTelegramId(@PathVariable long telegramId) {
         User user = service.getUserByTelegramId(telegramId);
 
         if (user == null) {
