@@ -2,7 +2,7 @@ package com.clipcoins.api.service;
 
 import com.clipcoins.api.model.User;
 import com.clipcoins.api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,19 +16,20 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        return null;
+        return repository.findAll();
     }
 
     public User getUserById(long id) {
-        return null;
-    }
-
-    public User getUserByTelegramId(long id) {
-        return null;
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User with id " + id + " not found"));
     }
 
     public User getUserByUsername(String username) {
-        return null;
+        return repository.findByUsername(username);
+    }
+
+    public User getUserByTelegramId(long telegramId) {
+        return repository.findByTelegramId(telegramId);
     }
 
     public User addUser(User user) {
