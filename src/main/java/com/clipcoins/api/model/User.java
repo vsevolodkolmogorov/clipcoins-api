@@ -40,10 +40,11 @@ public class User {
 
     public User() {}
 
-    public User(long id, String username, String hashedCode) {
+    public User(long id, long telegramId, String username) {
         this.id = id;
+        this.telegramId = telegramId;
         this.username = username;
-        this.hashedCode = hashedCode;
+        this.hashedCode = "hashedCode";
         this.role = "USER";
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
