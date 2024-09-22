@@ -3,11 +3,17 @@ package com.clipcoins.api.controller;
 import com.clipcoins.api.model.User;
 import com.clipcoins.api.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -62,13 +68,22 @@ public class UserController {
     }
 
     @PostMapping()
-    public ResponseEntity<User> addUser(@RequestBody User user) {
-        User createdUser = service.addUser(user);
-
-        if (createdUser == null || createdUser.getId() == 0) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> addUser(@Valid @RequestBody User user, BindingResult bindingResult) {
+        // Validation of the user by annotation from the model
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+            return ResponseEntity.badRequest().body(errors);
         }
 
+        if (service.userExists(user.getId(), user.getTelegramId())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Collections.singletonMap("error", "User already exists"));
+        }
+
+        User createdUser = service.addUser(user);
         return ResponseEntity.ok(createdUser);
     }
 
