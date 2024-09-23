@@ -73,14 +73,8 @@ public class UserController {
 
     @PostMapping()
     public ResponseEntity<?> addUser(@Valid @RequestBody User user, BindingResult bindingResult) {
-        // Validation of the user by annotation from the model
-        if (bindingResult.hasErrors()) {
-            Map<String, String> errors = new HashMap<>();
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errors.put(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.badRequest().body(errors);
-        }
+        ResponseEntity<?> errors = validateUser(bindingResult);
+        if (errors != null) return errors;
 
         if (service.userExists(user.getId(), user.getTelegramId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -111,5 +105,17 @@ public class UserController {
         }
 
         return ResponseEntity.ok(deletedUser);
+    }
+
+    private ResponseEntity<?> validateUser(BindingResult bindingResult) {
+        // Validation of the user by annotation from the model
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        }
+        return null;
     }
 }
