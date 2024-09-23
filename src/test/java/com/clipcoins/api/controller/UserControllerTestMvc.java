@@ -4,8 +4,6 @@ import com.clipcoins.api.model.User;
 import com.clipcoins.api.repository.UserRepository;
 import com.clipcoins.api.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityNotFoundException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Collections;
 import java.util.List;
@@ -303,4 +299,48 @@ public class UserControllerTestMvc {
                         .content(objectMapper.writeValueAsString(testUser)))
                         .andExpect(status().isOk());
     }
+
+    // ---------------- DELETE --------------------
+
+    @Test
+    public void testDeleteUserWithNoContent() throws Exception {
+        long userId = 1L;
+
+        mvc.perform(delete("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User does not exist"));
+    }
+
+    @Test
+    public void testDeleteUserWithInvalidId() throws Exception {
+        Long userId = -1L;
+
+        mvc.perform(delete("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User does not exist"));
+    }
+
+    @Test
+    public void testDeleteUserWithNonExistedId() throws Exception {
+        Long userId = Long.MAX_VALUE;
+
+        mvc.perform(delete("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User does not exist"));
+    }
+
+    @Test
+    public void testDeleteUserOk() throws Exception {
+        User testUser = new User(1L, 1L, "user");
+
+        doReturn(testUser).when(service).getUserById(any(Long.class));
+
+        mvc.perform(delete("/users/{id}", testUser.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
 }
