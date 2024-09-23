@@ -226,4 +226,81 @@ public class UserControllerTestMvc {
                 .andExpect(status().isOk());
     }
 
+    // ---------------- PUT --------------------
+
+    @Test
+    public void testPutUserWithNoContent() throws Exception {
+        User testUser = new User();
+
+        mvc.perform(put("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testPutUserWithInvalidId() throws Exception {
+        User testUser = new User(-28L, 1L, "user");
+
+        when(repository.save(any(User.class))).thenReturn(testUser);
+
+        mvc.perform(put("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.id").value("Id must be a positive number"));
+    }
+
+    @Test
+    public void testPutUserWithNotExistedId() throws Exception {
+        User testUser = new User(28L, 1L, "user");
+
+        when(repository.save(any(User.class))).thenReturn(testUser);
+
+        mvc.perform(put("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User does not exist"));
+    }
+
+    @Test
+    public void testPutUserWithInvalidTelegramId() throws Exception {
+        User testUser = new User(1L, -28L, "user");
+
+        when(repository.save(any(User.class))).thenReturn(testUser);
+
+        mvc.perform(put("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.telegramId").value("TelegramId must be a positive number"));
+    }
+
+    @Test
+    public void testPutUserWithNullName() throws Exception {
+        User testUser = new User(1L, 1L, null);
+
+        when(repository.save(any(User.class))).thenReturn(testUser);
+
+        mvc.perform(put("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.username").value("Username cannot be null"));
+    }
+
+    @Test
+    public void testPutUserOk() throws Exception {
+        User testUser = new User(1L, 1L, "user");
+
+        when(repository.save(any(User.class))).thenReturn(testUser);
+
+        doReturn(true).when(service).userExists(any(Long.class), any(Long.class));
+
+        mvc.perform(put("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testUser)))
+                        .andExpect(status().isOk());
+    }
 }
