@@ -86,13 +86,16 @@ public class UserController {
     }
 
     @PutMapping()
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
-        User updatedUser = service.updateUser(user);
+    public ResponseEntity<?> updateUser(@Valid @RequestBody User user, BindingResult bindingResult) {
+        ResponseEntity<?> errors = validateUser(bindingResult);
+        if (errors != null) return errors;
 
-        if (updatedUser == null || updatedUser.equals(user)) {
-            return ResponseEntity.badRequest().build();
+        if (!service.userExists(user.getId(), user.getTelegramId())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", "User does not exist"));
         }
 
+        User updatedUser = service.updateUser(user);
         return ResponseEntity.ok(updatedUser);
     }
 

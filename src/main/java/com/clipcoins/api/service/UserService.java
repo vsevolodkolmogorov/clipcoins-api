@@ -37,7 +37,7 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        return null;
+        return repository.save(user);
     }
 
     public User deleteUser(Long id) {
