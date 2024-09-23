@@ -100,11 +100,12 @@ public class UserController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<User> deleteUser(@PathVariable long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable long id) {
         User deletedUser = service.deleteUser(id);
 
         if (deletedUser == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", "User does not exist"));
         }
 
         return ResponseEntity.ok(deletedUser);

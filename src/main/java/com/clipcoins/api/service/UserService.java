@@ -2,7 +2,6 @@ package com.clipcoins.api.service;
 
 import com.clipcoins.api.model.User;
 import com.clipcoins.api.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
@@ -41,11 +40,15 @@ public class UserService {
     }
 
     public User deleteUser(Long id) {
-        return null;
+        User user = this.getUserById(id);
+
+        if (user == null) return null;
+
+        repository.delete(user);
+        return user;
     }
 
     public boolean userExists(Long id, Long telegramId) {
-        return repository.findById(id).isPresent() ||
-                repository.findByTelegramId(telegramId) != null;
+        return repository.findById(id).isPresent() || repository.findByTelegramId(telegramId) != null;
     }
 }
