@@ -36,13 +36,15 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable long id) {
-        try {
-            User user = service.getUserById(id);
-            return ResponseEntity.ok(user);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> getUserById(@PathVariable long id) {
+        User user = service.getUserById(id);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", "User with id " + id + " not exist"));
         }
+
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/getByTelegramId/{telegramId}")
