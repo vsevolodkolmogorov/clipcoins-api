@@ -15,13 +15,13 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
@@ -41,21 +41,24 @@ public class UserControllerTestMvc {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // ---------------- GET --------------------
+
     @Test
     public void testGetAllUsersWithNoContent() throws Exception {
         when(service.getAllUsers()).thenReturn(Collections.emptyList());
 
         mvc.perform(get("/users/getAll")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent())
+                .andExpect(jsonPath("$.error").value("User list is empty"));
     }
 
     @Test
     public void testGetAllUsersOk() throws Exception {
         List<User> testUsers = List.of(
-                new User(1L,1L, "user1"),
-                new User(2L,2L, "user2"),
-                new User(3L,3L, "user3" )
+                new User(1L, 1L, "user1"),
+                new User(2L, 2L, "user2"),
+                new User(3L, 3L, "user3")
         );
 
         when(service.getAllUsers()).thenReturn(testUsers);
@@ -66,25 +69,24 @@ public class UserControllerTestMvc {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(testUsers.size()))
                 .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[1].username").value("user2"))
-                .andExpect(jsonPath("$[2].hashedCode").value("hashedCode3"));
+                .andExpect(jsonPath("$[1].username").value("user2"));
     }
 
     @Test
     public void testGetUserByIdWithNoContent() throws Exception {
         int userId = 1;
 
-        doThrow(new EntityNotFoundException("User with id " + userId + " not found"))
-                .when(service).getUserById(userId);
+        when(service.getUserById(1L)).thenReturn(null);
 
-        mvc.perform(get("/users/getUserById/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+        mvc.perform(get("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User with id " + userId + " not exist"));
     }
 
     @Test
     public void testGetUserByIdOk() throws Exception {
-        User testUser = new User(1L,1L, "user");
+        User testUser = new User(1L, 1L, "user");
 
         doReturn(testUser).when(service).getUserById(1L);
 
@@ -93,22 +95,24 @@ public class UserControllerTestMvc {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.username").value("user"))
-                .andExpect(jsonPath("$.hashedCode").value("hashedCode"));
+                .andExpect(jsonPath("$.username").value("user"));
     }
 
     @Test
     public void testGetUserByTelegramIdWithNoContent() throws Exception {
-        when(service.getUserByTelegramId(1L)).thenReturn(null);
+        int telegramId = 1;
 
-        mvc.perform(get("/users/getUserByTelegramId/{telegramId}", 1L)
+        when(service.getUserByTelegramId(telegramId)).thenReturn(null);
+
+        mvc.perform(get("/users/getByTelegramId/{telegramId}", telegramId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User with telegramId " + telegramId + " not exist"));
     }
 
     @Test
     public void testGetUserByTelegramIdOk() throws Exception {
-        User testUser = new User(1L,1L, "user");
+        User testUser = new User(1L, 1L, "user");
 
         when(service.getUserByTelegramId(1L)).thenReturn(testUser);
 
@@ -116,23 +120,25 @@ public class UserControllerTestMvc {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.username").value("user"))
-                .andExpect(jsonPath("$.hashedCode").value("hashedCode"));
+                .andExpect(jsonPath("$.username").value("user"));
     }
 
     @Test
     public void testGetUserByNameWithNoContent() throws Exception {
-        when(service.getUserByUsername("user")).thenReturn(null);
+        String name = "user";
+
+        when(service.getUserByUsername(name)).thenReturn(null);
 
         mvc.perform(get("/users/getByName")
-                        .param("username", "user")
+                        .param("username", name)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User with name " + name + " not exist"));
     }
 
     @Test
     public void testGetUserByNameOk() throws Exception {
-        User testUser = new User(1L,1L, "user");
+        User testUser = new User(1L, 1L, "user");
 
         when(service.getUserByUsername("user")).thenReturn(testUser);
 
@@ -141,9 +147,10 @@ public class UserControllerTestMvc {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.username").value("user"))
-                .andExpect(jsonPath("$.hashedCode").value("hashedCode"));
+                .andExpect(jsonPath("$.username").value("user"));
     }
+
+    // ---------------- POST --------------------
 
     @Test
     public void testPostUserWithNoContent() throws Exception {
@@ -152,7 +159,7 @@ public class UserControllerTestMvc {
         mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                        .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -164,8 +171,8 @@ public class UserControllerTestMvc {
         mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.id").value("Id must be a positive number"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.id").value("Id must be a positive number"));
     }
 
     @Test
@@ -182,7 +189,7 @@ public class UserControllerTestMvc {
     }
 
     @Test
-    public void testPostUserWithInvalidName() throws Exception {
+    public void testPostUserWithNullName() throws Exception {
         User testUser = new User(1L, 1L, null);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
@@ -203,8 +210,8 @@ public class UserControllerTestMvc {
         mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                        .andExpect(status().isConflict())
-                        .andExpect(content().string("User already exists"));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("User already exists"));
     }
 
     @Test
@@ -216,7 +223,7 @@ public class UserControllerTestMvc {
         mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                        .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
 
 }
