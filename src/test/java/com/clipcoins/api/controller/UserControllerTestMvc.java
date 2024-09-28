@@ -194,7 +194,7 @@ public class UserControllerTestMvc {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.username").value("Username cannot be null"));
+                .andExpect(jsonPath("$.username").value("Username cannot be empty"));
     }
 
     @Test
@@ -231,7 +231,8 @@ public class UserControllerTestMvc {
         mvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User does not exist"));
     }
 
     @Test
@@ -243,8 +244,8 @@ public class UserControllerTestMvc {
         mvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.id").value("Id must be a positive number"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User does not exist"));
     }
 
     @Test
@@ -269,30 +270,46 @@ public class UserControllerTestMvc {
         mvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.telegramId").value("TelegramId must be a positive number"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User does not exist"));
     }
 
     @Test
     public void testPutUserWithNullName() throws Exception {
-        User testUser = new User(1L, 1L, null);
+        User oldUser = new User(1L, 1L, "user");
+        oldUser.setRole("USER");
 
-        when(repository.save(any(User.class))).thenReturn(testUser);
+        User testUser = new User(1L, 1L, null);
+        testUser.setRole("ADMIN");
+        testUser.setHashedCode(null);
+
+        doReturn(true).when(service).userExists(testUser.getId(), testUser.getTelegramId());
+        doReturn(oldUser).when(service).getUserById(any(Long.class));
 
         mvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testUser)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.username").value("Username cannot be null"));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.username").value("user"))
+                        .andExpect(jsonPath("$.role").value("ADMIN"));
     }
 
     @Test
     public void testPutUserOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User oldUser = new User(1L, 1L, "user");
+
+        /*
+        Null because we will not fill in the fields when sending data,
+        so the user is sent with empty values, as it were
+        */
+        User testUser = new User(1L, 1L, "test");
+        testUser.setRole(null);
+        testUser.setHashedCode(null);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
-        doReturn(true).when(service).userExists(any(Long.class), any(Long.class));
+        doReturn(true).when(service).userExists(testUser.getId(), testUser.getTelegramId());
+        doReturn(oldUser).when(service).getUserById(any(Long.class));
 
         mvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
