@@ -2,17 +2,15 @@ package com.clipcoins.api.controller;
 
 import com.clipcoins.api.model.User;
 import com.clipcoins.api.service.UserService;
+import com.clipcoins.api.utils.ValidationUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -73,16 +71,17 @@ public class UserController {
 
     @PostMapping()
     public ResponseEntity<?> addUser(@Valid @RequestBody User user, BindingResult bindingResult) {
-        ResponseEntity<?> errors = validateUser(bindingResult);
+        ResponseEntity<?> errors = ValidationUtil.checkUser(bindingResult);
         if (errors != null) return errors;
 
-        if (service.userExists(user.getId(), user.getTelegramId())) {
+        String jwtToken = service.addUser(user);
+
+        if (service.addUser(user) == null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Collections.singletonMap("error", "User already exists"));
         }
 
-        User createdUser = service.addUser(user);
-        return ResponseEntity.ok(createdUser);
+        return ResponseEntity.ok(jwtToken);
     }
 
     @PutMapping()
