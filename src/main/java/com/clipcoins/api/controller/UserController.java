@@ -111,5 +111,17 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }
         return null;
+    // -------------------- LOGIN LOGIC --------------------
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestParam String username) {
+        return service.loginUser(username);
+    }
+
+    @PostMapping("/login/verify")
+    public ResponseEntity<?> verifyToken(@RequestParam String token) {
+        return service.verifyToken(token);
+    }
+
     }
 }

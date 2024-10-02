@@ -86,7 +86,6 @@ public class UserService {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(Collections.singletonMap("error", "Token cannot be empty"));
             }
-            oldUser.setHashedCode(user.getHashedCode());
 
             oldUser.setToken(user.getToken());
             oldUser.setTokenGeneratedAt(OffsetDateTime.now());
@@ -116,5 +115,50 @@ public class UserService {
 
     public boolean userExists(Long id, Long telegramId) {
         return repository.findById(id).isPresent() || repository.findByTelegramId(telegramId) != null;
+    public ResponseEntity<?> loginUser(String username) {
+        User user = getUserByUsername(username);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", "User with username " + username + " not exist"));
+        }
+
+        Duration duration = Duration.between(user.getTokenGeneratedAt(), OffsetDateTime.now());
+
+        if (duration.toMinutes() >= 5) {
+            String generatedToken = TokenGenerator.generateToken();
+            user.setToken(generatedToken);
+            updateUser(user);
+        }
+
+        // Logic of send message generatedToken to telegram
+        // ***********************************************
+
+        return ResponseEntity.ok("Token sent to your Telegram bot.");
+    }
+
+    public ResponseEntity<?> verifyToken(String token) {
+        User user = getUserByToken(token);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Invalid token"));
+        }
+
+        Duration duration = Duration.between(user.getTokenGeneratedAt(), OffsetDateTime.now());
+
+        if (duration.toMinutes() >= 5) {
+            String generatedToken = TokenGenerator.generateToken();
+            user.setToken(generatedToken);
+            updateUser(user);
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Expired token"));
+        }
+
+
+        String jwt = jwtUtil.generateToken(user);
+        return ResponseEntity.ok(jwt);
+    }
     }
 }
