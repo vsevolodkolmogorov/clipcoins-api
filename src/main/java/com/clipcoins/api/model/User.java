@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -24,12 +25,7 @@ public class User {
     @NotBlank(message = "Username cannot be empty")
     private String username;
 
-    /**
-     *  I will not set size since the hashing implementation has not yet been developed
-     *  Size(min = 64, max = 64, message = "Hashed code must be exactly 64 characters")
-     */
-    @NotBlank(message = "HashedCode cannot be empty")
-    private String hashedCode;
+    private String token;
 
     @NotBlank(message = "Role cannot be null")
     @Pattern(regexp = "USER|ADMIN", message = "Role must be either USER or ADMIN")
@@ -43,13 +39,16 @@ public class User {
     @PastOrPresent(message = "UpdatedAt must be in the past or present")
     private OffsetDateTime  updatedAt;
 
+    @DateTimeFormat
+    @PastOrPresent(message = "TokenGeneratedAt must be in the past or present")
+    private OffsetDateTime  tokenGeneratedAt;
+
     public User() {}
 
     public User(long id, long telegramId, String username) {
         this.id = id;
         this.telegramId = telegramId;
         this.username = username;
-        this.hashedCode = "hashedCode";
         this.role = "USER";
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
@@ -79,12 +78,12 @@ public class User {
         this.username = username;
     }
 
-    public String getHashedCode() {
-        return hashedCode;
+    public String getToken() {
+        return token;
     }
 
-    public void setHashedCode(String hashedCode) {
-        this.hashedCode = hashedCode;
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getRole() {
@@ -111,6 +110,14 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
+    public OffsetDateTime getTokenGeneratedAt() {
+        return tokenGeneratedAt;
+    }
+
+    public void setTokenGeneratedAt(OffsetDateTime tokenGeneratedAt) {
+        this.tokenGeneratedAt = tokenGeneratedAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -130,10 +137,12 @@ public class User {
                 "id=" + id +
                 ", telegramId=" + telegramId +
                 ", username='" + username + '\'' +
-                ", hashedCode='" + hashedCode + '\'' +
+                ", token='" + token + '\'' +
                 ", role='" + role + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", tokenGeneratedAt=" + tokenGeneratedAt +
                 '}';
     }
+
 }
