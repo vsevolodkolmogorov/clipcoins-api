@@ -360,4 +360,128 @@ public class UserControllerTestMvc {
                 .andExpect(status().isOk());
     }
 
+    // ---------------- LOGIN --------------------
+
+    @Test
+    public void testLoginWithNoContent() throws Exception {
+        String username = null;
+
+        mvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("username", username))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testLoginWithNoExistedUsername() throws Exception {
+        String username = "test";
+
+        mvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("username", username))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("User with username " + username + " not exist"));
+    }
+
+    @Test
+    public void testLoginOk() throws Exception {
+        User testUser = new User(1L, 1L, "user");
+        testUser.setTokenGeneratedAt(OffsetDateTime.now());
+
+        doReturn(testUser).when(service).getUserByUsername(any(String.class));
+
+        mvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("username", testUser.getUsername()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testLoginVerifyWithNoContent() throws Exception {
+        String token = null;
+
+        mvc.perform(post("/users/login/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("token", token))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testLoginVerifyWithInvalidToken() throws Exception {
+        String token = "test";
+
+        mvc.perform(post("/users/login/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("token", token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Invalid token"));
+    }
+
+    @Test
+    public void testLoginVerifyWithExpiredToken() throws Exception {
+        User testUser = new User(1L, 1L, "user");
+        testUser.setTokenGeneratedAt(OffsetDateTime.now().minusMinutes(5));
+        testUser.setToken("test");
+
+        doReturn(testUser).when(service).getUserByToken(any(String.class));
+
+
+        mvc.perform(post("/users/login/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("token", testUser.getToken()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Expired token"));
+    }
+
+    @Test
+    public void testLoginVerifyOk() throws Exception {
+        User testUser = new User(1L, 1L, "user");
+        testUser.setTokenGeneratedAt(OffsetDateTime.now());
+        testUser.setToken("test");
+
+        doReturn(testUser).when(service).getUserByToken(any(String.class));
+
+
+        mvc.perform(post("/users/login/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("token", testUser.getToken()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testCheckJwtTokenWithNoContent() throws Exception {
+        String jwtToken = null;
+
+        mvc.perform(get("/users/auth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testCheckJwtTokenWithInvalidToken() throws Exception {
+        String jwtToken = "test";
+
+        mvc.perform(get("/users/auth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testCheckJwtTokenOk() throws Exception {
+        User testUser = new User(1L, 1L, "user");
+
+        when(jwtUtil.generateToken(any(User.class))).thenReturn("test");
+        when(jwtUtil.extractJwtFromHeader(any(String.class))).thenReturn("test");
+        when(jwtUtil.validateToken(any(String.class))).thenReturn(testUser);
+
+        String jwtToken = jwtUtil.generateToken(testUser);
+
+        mvc.perform(get("/users/auth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isOk());
+    }
+
 }
