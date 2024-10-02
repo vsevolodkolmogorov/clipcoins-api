@@ -3,6 +3,7 @@ package com.clipcoins.api.controller;
 import com.clipcoins.api.model.User;
 import com.clipcoins.api.repository.UserRepository;
 import com.clipcoins.api.service.UserService;
+import com.clipcoins.api.utils.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,6 +29,9 @@ public class UserControllerTestMvc {
 
     @MockBean
     private UserRepository repository;
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     @SpyBean
     private UserService service;
@@ -201,7 +206,7 @@ public class UserControllerTestMvc {
     public void testPostUserAlreadyExisted() throws Exception {
         User testUser = new User(1L, 1L, "user");
 
-        doReturn(true).when(service).userExists(any(Long.class), any(Long.class));
+        doReturn(testUser).when(service).getUserById(any(Long.class));
 
         mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -281,9 +286,7 @@ public class UserControllerTestMvc {
 
         User testUser = new User(1L, 1L, null);
         testUser.setRole("ADMIN");
-        testUser.setHashedCode(null);
 
-        doReturn(true).when(service).userExists(testUser.getId(), testUser.getTelegramId());
         doReturn(oldUser).when(service).getUserById(any(Long.class));
 
         mvc.perform(put("/users")
@@ -297,18 +300,15 @@ public class UserControllerTestMvc {
     @Test
     public void testPutUserOk() throws Exception {
         User oldUser = new User(1L, 1L, "user");
-
         /*
         Null because we will not fill in the fields when sending data,
         so the user is sent with empty values, as it were
         */
         User testUser = new User(1L, 1L, "test");
         testUser.setRole(null);
-        testUser.setHashedCode(null);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
-        doReturn(true).when(service).userExists(testUser.getId(), testUser.getTelegramId());
         doReturn(oldUser).when(service).getUserById(any(Long.class));
 
         mvc.perform(put("/users")
@@ -321,7 +321,7 @@ public class UserControllerTestMvc {
 
     @Test
     public void testDeleteUserWithNoContent() throws Exception {
-        long userId = 1L;
+        long userId = Long.MAX_VALUE;
 
         mvc.perform(delete("/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
