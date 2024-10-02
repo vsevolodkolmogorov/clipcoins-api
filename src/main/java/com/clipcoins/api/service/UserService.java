@@ -43,6 +43,19 @@ public class UserService {
 
     public User addUser(@Valid User user) {
         return repository.save(user);
+    public String addUser(@Valid User user) {
+        if (getUserById(user.getId()) != null) {
+            return null;
+        }
+
+        // Generate token for user
+        String generatedToken = TokenGenerator.generateToken();
+        user.setToken(generatedToken);
+        user.setTokenGeneratedAt(OffsetDateTime.now());
+
+        repository.save(user);
+
+        return jwtUtil.generateToken(user);
     }
 
     // TODO: optimize the code, remove duplicates,
