@@ -2,11 +2,15 @@ package com.clipcoins.api.service;
 
 import com.clipcoins.api.model.User;
 import com.clipcoins.api.repository.UserRepository;
+import com.clipcoins.api.utils.JwtUtil;
+import com.clipcoins.api.utils.TokenGenerator;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestHeader;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -14,9 +18,11 @@ import java.util.List;
 @Service
 public class UserService {
     private final UserRepository repository;
+    private final JwtUtil jwtUtil;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
         this.repository = userRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     public List<User> getAllUsers() {
