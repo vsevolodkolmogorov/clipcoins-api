@@ -101,16 +101,6 @@ public class UserController {
         return ResponseEntity.ok(deletedUser);
     }
 
-    private ResponseEntity<?> validateUser(BindingResult bindingResult) {
-        // Validation of the user by annotation from the model
-        if (bindingResult.hasErrors()) {
-            Map<String, String> errors = new HashMap<>();
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errors.put(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-        }
-        return null;
     // -------------------- LOGIN LOGIC --------------------
 
     @PostMapping("/login")
@@ -123,5 +113,8 @@ public class UserController {
         return service.verifyToken(token);
     }
 
+    @GetMapping("/auth")
+    public ResponseEntity<?> auth(@RequestHeader("Authorization") String jwtTokenHeader) {
+        return service.checkJwtToken(jwtTokenHeader);
     }
 }

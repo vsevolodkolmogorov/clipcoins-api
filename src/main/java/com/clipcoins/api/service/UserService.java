@@ -113,8 +113,6 @@ public class UserService {
         return user;
     }
 
-    public boolean userExists(Long id, Long telegramId) {
-        return repository.findById(id).isPresent() || repository.findByTelegramId(telegramId) != null;
     public ResponseEntity<?> loginUser(String username) {
         User user = getUserByUsername(username);
 
@@ -160,5 +158,23 @@ public class UserService {
         String jwt = jwtUtil.generateToken(user);
         return ResponseEntity.ok(jwt);
     }
+
+    public ResponseEntity<?> checkJwtToken(@RequestHeader("Authorization") String jwtTokenHeader)  {
+        String jwtToken = jwtUtil.extractJwtFromHeader(jwtTokenHeader);
+
+        if (jwtToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Authorization token missing or invalid"));
+        }
+
+        User jwtUser = jwtUtil.validateToken(jwtToken);
+
+        if (jwtUser != null) {
+            String newJwt = jwtUtil.generateToken(jwtUser);
+            return ResponseEntity.ok(newJwt);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Token is invalid or expired"));
+        }
     }
 }
