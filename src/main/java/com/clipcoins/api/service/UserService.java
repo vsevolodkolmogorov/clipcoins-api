@@ -41,8 +41,10 @@ public class UserService {
         return repository.findByTelegramId(telegramId);
     }
 
-    public User addUser(@Valid User user) {
-        return repository.save(user);
+    public User getUserByToken(String token) {
+        return repository.findByToken(token);
+    }
+
     public String addUser(@Valid User user) {
         if (getUserById(user.getId()) != null) {
             return null;
