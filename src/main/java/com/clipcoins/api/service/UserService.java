@@ -60,14 +60,13 @@ public class UserService {
         return jwtUtil.generateToken(user);
     }
 
-    // TODO: optimize the code, remove duplicates,
     public ResponseEntity<?> updateUser(User user) {
-        if (!userExists(user.getId(), user.getTelegramId())) {
+        if (getUserById(user.getId()) == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Collections.singletonMap("error", "User does not exist"));
         }
 
-        if (user.getUsername() == null && user.getHashedCode() == null && user.getRole() == null) {
+        if (user.getUsername() == null && user.getRole() == null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Collections.singletonMap("error", "Nothing to update"));
         }
@@ -79,34 +78,24 @@ public class UserService {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(Collections.singletonMap("error", "Username cannot be empty"));
             }
-            if (user.getUsername().equals(oldUser.getUsername())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Collections.singletonMap("error", "Username same as old"));
-            }
             oldUser.setUsername(user.getUsername());
         }
 
-
-        if (user.getHashedCode() != null) {
-            if (user.getHashedCode().isEmpty() || user.getHashedCode().isBlank()) {
+        if (user.getToken() != null) {
+            if (user.getToken().isEmpty() || user.getToken().isBlank()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Collections.singletonMap("error", "Hashcode cannot be empty"));
-            }
-            if (user.getHashedCode().equals(oldUser.getHashedCode())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Collections.singletonMap("error", "H*+ashcode same as old"));
+                        .body(Collections.singletonMap("error", "Token cannot be empty"));
             }
             oldUser.setHashedCode(user.getHashedCode());
+
+            oldUser.setToken(user.getToken());
+            oldUser.setTokenGeneratedAt(OffsetDateTime.now());
         }
 
         if (user.getRole() != null) {
             if (!List.of("USER", "ADMIN").contains(user.getRole())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(Collections.singletonMap("error", "User role must be USER or ADMIN"));
-            }
-            if (user.getRole().equals(oldUser.getRole())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Collections.singletonMap("error", "User role same as old"));
             }
             oldUser.setRole(user.getRole());
         }
