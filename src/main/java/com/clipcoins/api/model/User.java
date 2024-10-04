@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -43,10 +44,12 @@ public class User {
     @PastOrPresent(message = "TokenGeneratedAt must be in the past or present")
     private OffsetDateTime  tokenGeneratedAt;
 
+    @OneToMany(mappedBy = "post")
+    private List<Post> posts;
+
     public User() {}
 
-    public User(long id, long telegramId, String username) {
-        this.id = id;
+    public User(long telegramId, String username) {
         this.telegramId = telegramId;
         this.username = username;
         this.role = "USER";
@@ -145,4 +148,11 @@ public class User {
                 '}';
     }
 
+    public List<Post> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+    }
 }
