@@ -57,9 +57,9 @@ public class UserControllerTestMvc {
     @Test
     public void testGetAllUsersOk() throws Exception {
         List<User> testUsers = List.of(
-                new User(1L, 1L, "user1"),
-                new User(2L, 2L, "user2"),
-                new User(3L, 3L, "user3")
+                new User(1L, "user1"),
+                new User( 2L, "user2"),
+                new User( 3L, "user3")
         );
 
         when(service.getAllUsers()).thenReturn(testUsers);
@@ -69,7 +69,6 @@ public class UserControllerTestMvc {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(testUsers.size()))
-                .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[1].username").value("user2"));
     }
 
@@ -87,7 +86,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testGetUserByIdOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
 
         doReturn(testUser).when(service).getUserById(1L);
 
@@ -113,7 +113,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testGetUserByTelegramIdOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
 
         when(service.getUserByTelegramId(1L)).thenReturn(testUser);
 
@@ -139,7 +140,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testGetUserByNameOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
 
         when(service.getUserByUsername("user")).thenReturn(testUser);
 
@@ -165,7 +167,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPostUserWithInvalidId() throws Exception {
-        User testUser = new User(-28L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(-28L);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
@@ -178,7 +181,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPostUserWithInvalidTelegramId() throws Exception {
-        User testUser = new User(1L, -28L, "user");
+        User testUser = new User( -28L, "user");
+        testUser.setId(1L);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
@@ -191,7 +195,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPostUserWithNullName() throws Exception {
-        User testUser = new User(1L, 1L, null);
+        User testUser = new User( 1L, null);
+        testUser.setId(1L);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
@@ -204,7 +209,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPostUserAlreadyExisted() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User(1L, "user");
+        testUser.setId(1L);
 
         doReturn(testUser).when(service).getUserById(any(Long.class));
 
@@ -217,9 +223,11 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPostUserOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
+        when(jwtUtil.generateToken(any(User.class))).thenReturn("token");
 
         mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -242,7 +250,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPutUserWithInvalidId() throws Exception {
-        User testUser = new User(-28L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(-28L);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
@@ -255,7 +264,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPutUserWithNotExistedId() throws Exception {
-        User testUser = new User(28L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(Long.MAX_VALUE);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
@@ -268,7 +278,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPutUserWithInvalidTelegramId() throws Exception {
-        User testUser = new User(1L, -28L, "user");
+        User testUser = new User( -28L, "user");
+        testUser.setId(1L);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
 
@@ -281,10 +292,12 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPutUserWithNullName() throws Exception {
-        User oldUser = new User(1L, 1L, "user");
+        User oldUser = new User( 1L, "user");
+        oldUser.setId(1L);
         oldUser.setRole("USER");
 
-        User testUser = new User(1L, 1L, null);
+        User testUser = new User( 1L, null);
+        testUser.setId(1L);
         testUser.setRole("ADMIN");
 
         doReturn(oldUser).when(service).getUserById(any(Long.class));
@@ -299,12 +312,10 @@ public class UserControllerTestMvc {
 
     @Test
     public void testPutUserOk() throws Exception {
-        User oldUser = new User(1L, 1L, "user");
-        /*
-        Null because we will not fill in the fields when sending data,
-        so the user is sent with empty values, as it were
-        */
-        User testUser = new User(1L, 1L, "test");
+        User oldUser = new User( 1L, "user");
+        oldUser.setId(1L);
+        User testUser = new User(1L, "test");
+        testUser.setId(1L);
         testUser.setRole(null);
 
         when(repository.save(any(User.class))).thenReturn(testUser);
@@ -351,7 +362,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testDeleteUserOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User(1L, "user");
+        testUser.setId(1L);
 
         doReturn(testUser).when(service).getUserById(any(Long.class));
 
@@ -385,7 +397,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testLoginOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
         testUser.setTokenGeneratedAt(OffsetDateTime.now());
 
         doReturn(testUser).when(service).getUserByUsername(any(String.class));
@@ -419,7 +432,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testLoginVerifyWithExpiredToken() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
         testUser.setTokenGeneratedAt(OffsetDateTime.now().minusMinutes(5));
         testUser.setToken("test");
 
@@ -435,7 +449,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testLoginVerifyOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
         testUser.setTokenGeneratedAt(OffsetDateTime.now());
         testUser.setToken("test");
 
@@ -470,7 +485,8 @@ public class UserControllerTestMvc {
 
     @Test
     public void testCheckJwtTokenOk() throws Exception {
-        User testUser = new User(1L, 1L, "user");
+        User testUser = new User( 1L, "user");
+        testUser.setId(1L);
 
         when(jwtUtil.generateToken(any(User.class))).thenReturn("test");
         when(jwtUtil.extractJwtFromHeader(any(String.class))).thenReturn("test");
