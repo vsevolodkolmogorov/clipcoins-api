@@ -71,12 +71,12 @@ public class UserController {
 
     @PostMapping()
     public ResponseEntity<?> addUser(@Valid @RequestBody User user, BindingResult bindingResult) {
-        ResponseEntity<?> errors = ValidationUtil.checkUser(bindingResult);
+        ResponseEntity<?> errors = ValidationUtil.checkParam(bindingResult);
         if (errors != null) return errors;
 
         String jwtToken = service.addUser(user);
 
-        if (service.addUser(user) == null) {
+        if (jwtToken == null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Collections.singletonMap("error", "User already exists"));
         }
