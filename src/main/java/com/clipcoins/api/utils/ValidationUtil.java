@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class ValidationUtil {
 
-    public static ResponseEntity<?> checkUser(BindingResult bindingResult) {
+    public static ResponseEntity<?> checkParam(BindingResult bindingResult) {
         // Validation of the user by annotation from the model
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
